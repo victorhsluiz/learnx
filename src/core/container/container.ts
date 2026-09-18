@@ -3,6 +3,9 @@ import { PrismaUserRepository } from "@/modules/users/user.repository";
 import { PrismaRefreshTokenRepository } from "@/modules/auth/refresh-token.repository";
 import { AuthService } from "@/modules/auth/auth.service";
 import { AuthController } from "@/modules/auth/auth.controller";
+import { PrismaLessonRepository } from "@/modules/lessons/lesson.repository";
+import { LessonService } from "@/modules/lessons/lesson.service";
+import { LessonController } from "@/modules/lessons/lesson.controller";
 
 /**
  * Composition root: the single place where concrete implementations are
@@ -21,7 +24,12 @@ const refreshTokenRepository = new PrismaRefreshTokenRepository(prisma);
 const authService = new AuthService(userRepository, refreshTokenRepository);
 const authController = new AuthController(authService, userRepository);
 
+const lessonRepository = new PrismaLessonRepository(prisma);
+const lessonService = new LessonService(lessonRepository);
+const lessonController = new LessonController(lessonService);
+
 export const container = {
   prisma,
   authController,
+  lessonController,
 };

@@ -18,6 +18,7 @@ model User {
   updatedAt    DateTime @updatedAt
 
   refreshTokens RefreshToken[]
+  lessons       Lesson[]
 
   @@map("users")
 }
@@ -37,4 +38,39 @@ model RefreshToken {
 
   @@index([userId])
   @@map("refresh_tokens")
+}
+
+enum LessonType {
+  RECORDED
+  LIVE
+}
+
+enum LessonStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+/// A course lesson (recorded or live). Words and notes can optionally
+/// reference the lesson they came from.
+model Lesson {
+  id              String       @id @default(cuid())
+  userId          String
+  title           String
+  type            LessonType
+  status          LessonStatus @default(PENDING)
+  sourceUrl       String?
+  scheduledAt     DateTime?
+  watchedAt       DateTime?
+  durationMinutes Int?
+  tags            String[]     @default([])
+  position        Int?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("lessons")
 }

@@ -4,7 +4,7 @@ import type { AppErrorCode } from "@/core/errors";
 /** Shape of every successful API response. */
 export interface SuccessBody<T> {
   data: T;
-  meta?: Record<string, unknown>;
+  meta?: object;
 }
 
 /** Shape of every error API response. */
@@ -17,13 +17,13 @@ export interface ErrorBody {
 }
 
 /** Wraps `data` in the standard success envelope, defaulting to HTTP 200. */
-export function ok<T>(data: T, init?: { status?: number; meta?: Record<string, unknown> }) {
+export function ok<T>(data: T, init?: { status?: number; meta?: object }) {
   const body: SuccessBody<T> = init?.meta ? { data, meta: init.meta } : { data };
   return NextResponse.json(body, { status: init?.status ?? 200 });
 }
 
 /** Wraps `data` in the standard success envelope with HTTP 201 (Created). */
-export function created<T>(data: T, meta?: Record<string, unknown>) {
+export function created<T>(data: T, meta?: object) {
   return ok(data, { status: 201, meta });
 }
 
