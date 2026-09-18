@@ -1,4 +1,9 @@
 # syntax=docker/dockerfile:1
+# check=skip=SecretsUsedInArgOrEnv
+# The ENV values flagged by this rule below are inert placeholders used
+# only to satisfy build-time env validation (see the comment above them),
+# not real secrets. Real secrets are injected at container start, never
+# baked into this image.
 
 # --- Base ---------------------------------------------------------------
 # Pinned Node LTS matching the version used in development (see package.json
@@ -21,6 +26,16 @@ COPY . .
 # src/generated/prisma and must exist before `next build` type-checks and
 # bundles the app.
 RUN npx prisma generate
+
+# `next build` evaluates route handlers to determine which are static vs
+# dynamic, which imports core/database/prisma.ts and therefore validates
+# env vars (see core/config/env.ts). Real secrets are never baked into the
+# image — they're injected at container start (see docker-compose.yml) —
+# so build-time-only placeholders satisfy that validation here. They are
+# not used for any actual database connection during the build.
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV JWT_ACCESS_SECRET="build-time-placeholder-not-used-at-runtime00"
+ENV JWT_REFRESH_SECRET="build-time-placeholder-not-used-at-runtime0"
 RUN npm run build
 
 # --- Runtime ----------------------------------------------------------------
