@@ -6,6 +6,9 @@ import { AuthController } from "@/modules/auth/auth.controller";
 import { PrismaLessonRepository } from "@/modules/lessons/lesson.repository";
 import { LessonService } from "@/modules/lessons/lesson.service";
 import { LessonController } from "@/modules/lessons/lesson.controller";
+import { PrismaNoteRepository } from "@/modules/notes/note.repository";
+import { NoteService } from "@/modules/notes/note.service";
+import { NoteController } from "@/modules/notes/note.controller";
 
 /**
  * Composition root: the single place where concrete implementations are
@@ -28,8 +31,13 @@ const lessonRepository = new PrismaLessonRepository(prisma);
 const lessonService = new LessonService(lessonRepository);
 const lessonController = new LessonController(lessonService);
 
+const noteRepository = new PrismaNoteRepository(prisma);
+const noteService = new NoteService(noteRepository, lessonRepository);
+const noteController = new NoteController(noteService);
+
 export const container = {
   prisma,
   authController,
   lessonController,
+  noteController,
 };

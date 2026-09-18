@@ -19,6 +19,7 @@ model User {
 
   refreshTokens RefreshToken[]
   lessons       Lesson[]
+  notes         Note[]
 
   @@map("users")
 }
@@ -68,9 +69,32 @@ model Lesson {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes Note[]
 
   @@index([userId])
   @@index([userId, status])
   @@map("lessons")
+}
+
+/// A study note in Markdown. Optionally tied to the lesson it was taken
+/// during — deleting that lesson orphans the note (sets lessonId to
+/// null) rather than deleting it, since the note's content still has
+/// value on its own.
+model Note {
+  id              String   @id @default(cuid())
+  userId          String
+  lessonId        String?
+  title           String
+  contentMarkdown String
+  tags            String[] @default([])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, lessonId])
+  @@map("notes")
 }
