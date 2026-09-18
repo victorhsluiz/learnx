@@ -154,6 +154,41 @@ signature/expiry (no DB lookup, to stay fast), and every API route still
 calls `requireUser()` independently, since a Proxy matcher can silently
 stop covering a route after a refactor.
 
+## Frontend
+
+Route groups keep the auth pages and the authenticated app shell visually
+and structurally separate without affecting the URL (`(auth)/login/page.tsx`
+serves `/login`, `(app)/dashboard/page.tsx` serves `/dashboard`):
+
+- **`(auth)`** — centered, chrome-less layout for `/login` and `/register`.
+  Forms use `react-hook-form` with a `zodResolver`, mirroring (for
+  client-side UX feedback only) the same validation rules the backend DTOs
+  enforce in `modules/auth/auth.dto.ts` — the backend remains the source of
+  truth; these schemas just avoid a round-trip for obviously invalid input.
+- **`(app)`** — the authenticated shell (`AppShell` header + navbar from
+  Mantine) wrapping every page under it. `src/proxy.ts` redirects here to
+  `/login` when there's no valid session before the page even renders.
+
+`src/lib/api-client.ts` is the only thing in the frontend that calls
+`/api/v1/**`. It unwraps the `{ data }` / `{ error }` envelope into a plain
+value or an `ApiError`, and — this is the part worth knowing about —
+transparently retries a request exactly once after a `401` by calling
+`POST /auth/refresh` first. Concurrent 401s share a single in-flight
+refresh call instead of each racing to rotate the refresh token (only the
+first would succeed; the rest would get "already used"). This is what
+keeps a session alive past the access token's 15-minute expiry without any
+component needing to know about token lifetimes.
+
+`src/lib/queries/auth.ts` wraps that client in TanStack Query hooks
+(`useSession`, `useLogin`, `useRegister`, `useLogout`) — the only state
+management for server data in this app; there's no separate global store.
+`useSession`'s query treats a `401` as "not logged in" (`data` is `null`)
+rather than a query error, so components branch on `data` presence, not on
+`isError`. `AppQueryClientProvider` (`src/lib/query-client-provider.tsx`)
+creates the `QueryClient` in component state (not module scope) so it's
+never shared across requests/users during server rendering, and wraps the
+whole app in the root layout.
+
 ## Dependency injection: the container
 
 `src/core/container/container.ts` is the composition root: the one place in

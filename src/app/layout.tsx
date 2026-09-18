@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from "@mantine/core";
 import { theme } from "@/lib/theme";
+import { AppQueryClientProvider } from "@/lib/query-client-provider";
 import "@mantine/core/styles.css";
 import "./globals.css";
 
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="min-h-screen antialiased">
         <MantineProvider theme={theme} defaultColorScheme="auto">
-          {children}
+          <AppQueryClientProvider>{children}</AppQueryClientProvider>
         </MantineProvider>
       </body>
     </html>
