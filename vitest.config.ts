@@ -23,6 +23,12 @@ export default defineConfig({
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
           setupFiles: ["tests/setup/integration.setup.ts"],
+          // Integration tests share a single real database, and several
+          // suites use broad cleanup (deleteMany) between tests. Running
+          // test files in parallel workers lets one file's cleanup wipe
+          // rows another file is mid-test with, so they run sequentially
+          // in a single process instead.
+          fileParallelism: false,
         },
       },
       {

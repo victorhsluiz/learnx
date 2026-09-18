@@ -1,4 +1,7 @@
 import { UnauthorizedError } from "@/core/errors";
+import { verifyAccessToken } from "@/core/security/jwt";
+import { ACCESS_TOKEN_COOKIE } from "@/modules/auth/auth.cookies";
+import { getRequestCookie } from "./cookies";
 
 /** Minimal identity extracted from a validated access token. */
 export interface AuthenticatedUser {
@@ -6,15 +9,10 @@ export interface AuthenticatedUser {
 }
 
 /**
- * Resolves the authenticated user for the current request.
- *
- * TODO(auth module): this currently only checks for the presence of an
- * access token cookie and does not verify its signature/expiry yet — JWT
- * verification lands with core/security/jwt.ts in the auth module. Until
- * then, this always throws UnauthorizedError, so no route can accidentally
- * treat an unauthenticated request as authenticated.
- *
- * Once wired up, controllers call this instead of reading cookies
+ * Resolves the authenticated user for the current request from the
+ * `access_token` httpOnly cookie. Throws UnauthorizedError if the cookie
+ * is missing, or if the token is malformed, expired, or has an invalid
+ * signature — controllers call this instead of reading/verifying cookies
  * themselves:
  *
  *   export const GET = withRoute(async (request) => {
@@ -23,11 +21,16 @@ export interface AuthenticatedUser {
  *   });
  */
 export async function requireUser(request: Request): Promise<AuthenticatedUser> {
-  const hasAccessTokenCookie = request.headers.get("cookie")?.includes("access_token=");
+  const accessToken = getRequestCookie(request, ACCESS_TOKEN_COOKIE);
 
-  if (!hasAccessTokenCookie) {
+  if (!accessToken) {
     throw new UnauthorizedError("Missing access token");
   }
 
-  throw new UnauthorizedError("Access token verification is not implemented yet");
+  const payload = await verifyAccessToken(accessToken);
+  if (!payload) {
+    throw new UnauthorizedError("Invalid or expired access token");
+  }
+
+  return { id: payload.sub };
 }

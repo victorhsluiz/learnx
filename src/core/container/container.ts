@@ -19,7 +19,7 @@ const userRepository = new PrismaUserRepository(prisma);
 const refreshTokenRepository = new PrismaRefreshTokenRepository(prisma);
 
 const authService = new AuthService(userRepository, refreshTokenRepository);
-const authController = new AuthController(authService);
+const authController = new AuthController(authService, userRepository);
 
 export const container = {
   prisma,

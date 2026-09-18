@@ -115,11 +115,44 @@ into an HTTP response.
 
 `requireUser(request)` (`src/core/http/require-user.ts`) is what a
 controller calls to get the current user's id, throwing `UnauthorizedError`
-if there's no valid session. **JWT verification is not implemented yet** —
-this is a deliberate placeholder that always throws until the auth module
-(access/refresh tokens, `core/security/jwt.ts`) is built. No route can
-accidentally treat an unauthenticated request as authenticated in the
-meantime.
+if there's no valid session. It reads the `access_token` cookie directly
+off the `Request` object via `getRequestCookie()`
+(`src/core/http/cookies.ts`) rather than `next/headers`' `cookies()` —
+that API depends on Next's request-scoped `AsyncLocalStorage` context,
+which only exists when a route is invoked through the real Next.js
+runtime, not when a route handler is imported and called directly (as
+integration tests do). Reading straight from the `Request` already passed
+to every handler works in both contexts.
+
+Sessions are two tokens, both httpOnly cookies (`core/security/jwt.ts`,
+`modules/auth/auth.cookies.ts`):
+
+- **Access token**: a 15-minute JWT (HS256, via `jose`), verified
+  stateless (no DB lookup) on every request that calls `requireUser()`.
+- **Refresh token**: a 7-day opaque random value. Only its SHA-256 hash is
+  ever persisted (`RefreshToken` table); the raw value is returned to the
+  client once and can't be recovered from the hash.
+
+`POST /api/v1/auth/refresh` **rotates** the refresh token: it revokes the
+presented token and issues a brand new access+refresh pair. If a client
+ever presents a token that's already revoked, that's treated as a
+possible compromise signal (either a replay of a token the legitimate
+client already rotated past, or a stolen token) and the request is
+rejected — see `AuthService.refresh()` for the current (documented as
+improvable — see `docs/roadmap.md`) detection logic. `POST
+/api/v1/auth/logout` revokes the current refresh token and clears both
+cookies.
+
+### Proxy (formerly "Middleware")
+
+`src/proxy.ts` is Next.js 16's renamed `middleware.ts` convention — the
+exported `proxy()` function still runs before a matched route renders.
+Here it redirects unauthenticated requests to `/login` for routes listed
+in its `matcher` (the future `(app)` route group's pages). This is a UX
+guard, not the security boundary: it only checks the access token's JWT
+signature/expiry (no DB lookup, to stay fast), and every API route still
+calls `requireUser()` independently, since a Proxy matcher can silently
+stop covering a route after a refactor.
 
 ## Dependency injection: the container
 

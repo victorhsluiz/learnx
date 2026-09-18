@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { AuthService } from "@/modules/auth/auth.service";
 import { hashPassword } from "@/core/security/password";
-import { verifyAccessToken } from "@/core/security/jwt";
+import { hashRefreshToken, verifyAccessToken } from "@/core/security/jwt";
 import { ConflictError, UnauthorizedError } from "@/core/errors";
 import type { CreateUserInput, UserRepository } from "@/modules/users/user.repository.interface";
 import type {
@@ -46,24 +46,32 @@ class FakeUserRepository implements UserRepository {
 
 class FakeRefreshTokenRepository implements RefreshTokenRepository {
   public created: CreateRefreshTokenInput[] = [];
+  private tokens: RefreshToken[] = [];
 
   async create(input: CreateRefreshTokenInput): Promise<RefreshToken> {
     this.created.push(input);
-    return {
-      id: `rt-${this.created.length}`,
+    const token: RefreshToken = {
+      id: `rt-${this.tokens.length + 1}`,
       tokenHash: input.tokenHash,
       userId: input.userId,
       expiresAt: input.expiresAt,
       createdAt: new Date(),
       revokedAt: null,
     };
+    this.tokens.push(token);
+    return token;
   }
 
-  async findByTokenHash(): Promise<RefreshToken | null> {
-    return null;
+  async findByTokenHash(tokenHash: string): Promise<RefreshToken | null> {
+    return this.tokens.find((t) => t.tokenHash === tokenHash) ?? null;
   }
 
-  async revoke(): Promise<void> {}
+  async revoke(id: string): Promise<void> {
+    const token = this.tokens.find((t) => t.id === id);
+    if (token) {
+      token.revokedAt = new Date();
+    }
+  }
 }
 
 describe("AuthService", () => {
@@ -161,6 +169,78 @@ describe("AuthService", () => {
         .catch((e) => e);
 
       expect(unknownEmailError.message).toBe(wrongPasswordError.message);
+    });
+  });
+
+  describe("refresh", () => {
+    it("rotates the refresh token and issues a usable new access token", async () => {
+      userRepository.seed(makeUser());
+      const { tokens } = await service.register({
+        email: "rotate@learnx.dev",
+        password: "correct-password",
+        name: "Rotate",
+      });
+
+      const result = await service.refresh(tokens.refreshToken);
+
+      // The refresh token is always a new opaque random value.
+      expect(result.tokens.refreshToken).not.toBe(tokens.refreshToken);
+      // The access token isn't guaranteed to differ byte-for-byte (it can
+      // be issued within the same second, with the same claims), but it
+      // must still verify to the same user.
+      const payload = await verifyAccessToken(result.tokens.accessToken);
+      expect(payload?.sub).toBe(result.user.id);
+    });
+
+    it("revokes the presented token so it can't be used a second time", async () => {
+      const { tokens } = await service.register({
+        email: "rotate@learnx.dev",
+        password: "correct-password",
+        name: "Rotate",
+      });
+
+      await service.refresh(tokens.refreshToken);
+
+      await expect(service.refresh(tokens.refreshToken)).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("throws UnauthorizedError for a token that was never issued", async () => {
+      await expect(service.refresh("not-a-real-token")).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("throws UnauthorizedError for an expired token", async () => {
+      const { tokens } = await service.register({
+        email: "rotate@learnx.dev",
+        password: "correct-password",
+        name: "Rotate",
+      });
+      // Force expiry on the stored record.
+      const stored = await refreshTokenRepository.findByTokenHash(
+        hashRefreshToken(tokens.refreshToken),
+      );
+      if (stored) {
+        stored.expiresAt = new Date(Date.now() - 1000);
+      }
+
+      await expect(service.refresh(tokens.refreshToken)).rejects.toThrow(UnauthorizedError);
+    });
+  });
+
+  describe("logout", () => {
+    it("revokes the presented refresh token", async () => {
+      const { tokens } = await service.register({
+        email: "logout@learnx.dev",
+        password: "correct-password",
+        name: "Logout",
+      });
+
+      await service.logout(tokens.refreshToken);
+
+      await expect(service.refresh(tokens.refreshToken)).rejects.toThrow(UnauthorizedError);
+    });
+
+    it("does not throw for an unknown token (logout is best-effort)", async () => {
+      await expect(service.logout("not-a-real-token")).resolves.toBeUndefined();
     });
   });
 });
