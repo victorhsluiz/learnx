@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/*
+ * Mantine ships its own component styles. We keep Tailwind for layout and
+ * utility classes (spacing, flex/grid, one-off tweaks) and let Mantine own
+ * component look-and-feel. Avoid Tailwind's preflight fighting with Mantine
+ * by only relying on Tailwind's utility classes, not base resets here.
+ */
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -20,7 +27,6 @@
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
 }
