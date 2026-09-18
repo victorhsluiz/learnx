@@ -1,23 +1,16 @@
-import { NextResponse } from "next/server";
+import { ok, withRoute } from "@/core/http";
 import { prisma } from "@/core/database/prisma";
 
-/**
- * Liveness endpoint. Intentionally minimal for now — no shared response
- * envelope or error-handling wrapper yet, those land in the architecture
- * backbone task. This route only proves the API surface (and the database
- * connection) is reachable.
- */
-export async function GET() {
+/** Liveness endpoint: proves the API surface and the database connection are reachable. */
+export const GET = withRoute(async () => {
   const database = await checkDatabase();
 
-  return NextResponse.json({
-    data: {
-      status: database.ok ? "ok" : "degraded",
-      timestamp: new Date().toISOString(),
-      database,
-    },
+  return ok({
+    status: database.ok ? "ok" : "degraded",
+    timestamp: new Date().toISOString(),
+    database,
   });
-}
+});
 
 async function checkDatabase(): Promise<{ ok: boolean; error?: string }> {
   try {

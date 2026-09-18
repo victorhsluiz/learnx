@@ -8,7 +8,8 @@ describe("GET /api/v1/health", () => {
   });
 
   it("responds with status ok and a database connectivity check", async () => {
-    const response = await GET();
+    const request = new Request("http://localhost/api/v1/health");
+    const response = await GET(request, { params: Promise.resolve({}) });
     const body = await response.json();
 
     expect(response.status).toBe(200);
