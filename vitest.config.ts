@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
@@ -21,6 +22,7 @@ export default defineConfig({
           name: "integration",
           environment: "node",
           include: ["tests/integration/**/*.test.ts"],
+          setupFiles: ["tests/setup/integration.setup.ts"],
         },
       },
       {

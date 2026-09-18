@@ -1,0 +1,50 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+    # The PostgreSQL server used by this project runs on the host machine
+    # (see .env.example), not in a container. Reaching "the host" from
+    # inside a container depends on your setup:
+    #
+    #   - Docker Desktop (Windows/macOS, incl. WSL2 backend): use
+    #     "host.docker.internal" in DATABASE_URL. The extra_hosts entry
+    #     below makes that name resolve on Linux engines too.
+    #
+    #   - Native Docker Engine on Linux without Docker Desktop: your app
+    #     needs the host's actual LAN/bridge IP (e.g. 172.19.96.1 in this
+    #     project's dev setup, but that address is WSL2's view of the
+    #     Windows host and is NOT guaranteed to be reachable from inside a
+    #     container the same way — verify with
+    #     `docker run --rm alpine ping -c1 172.19.96.1`, or switch to
+    #     `network_mode: host` if that fails, which drops the "ports"
+    #     mapping above since the container shares the host's network
+    #     namespace directly).
+    #
+    # Whichever you use, update DATABASE_URL in your .env accordingly
+    # before running `docker compose up`.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  # One-off helper to apply migrations against the same DATABASE_URL before
+  # starting the app. Not started by default (`--profile migrate`):
+  #   docker compose --profile migrate run --rm migrate
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    profiles: ["migrate"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    entrypoint: ["npx", "prisma", "migrate", "deploy"]
