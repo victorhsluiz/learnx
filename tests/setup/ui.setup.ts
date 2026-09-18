@@ -25,3 +25,13 @@ if (typeof window !== "undefined" && !window.matchMedia) {
     dispatchEvent: () => false,
   });
 }
+
+// jsdom also doesn't implement ResizeObserver, which Mantine components
+// like ScrollArea (used inside Modal, Menu, Select dropdowns) rely on.
+if (typeof window !== "undefined" && !window.ResizeObserver) {
+  window.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+}

@@ -76,7 +76,10 @@ function buildUrl(path: string, searchParams?: ApiRequestOptions["searchParams"]
   return url.pathname + url.search;
 }
 
-async function performRequest<T>(path: string, options: ApiRequestOptions): Promise<T> {
+async function performRequest<T>(
+  path: string,
+  options: ApiRequestOptions,
+): Promise<{ data: T; meta?: Record<string, unknown> }> {
   const response = await fetch(buildUrl(path, options.searchParams), {
     method: options.method ?? "GET",
     credentials: "include",
@@ -85,7 +88,7 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
   });
 
   if (response.status === 204) {
-    return undefined as T;
+    return { data: undefined as T };
   }
 
   const body = (await response.json().catch(() => null)) as
@@ -100,10 +103,14 @@ async function performRequest<T>(path: string, options: ApiRequestOptions): Prom
     );
   }
 
-  return (body as SuccessEnvelope<T>).data;
+  const success = body as SuccessEnvelope<T>;
+  return { data: success.data, meta: success.meta };
 }
 
-export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+async function requestWithRetry<T>(
+  path: string,
+  options: ApiRequestOptions,
+): Promise<{ data: T; meta?: Record<string, unknown> }> {
   const retryOn401 = options.retryOn401 ?? true;
 
   try {
@@ -123,9 +130,24 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 }
 
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const { data } = await requestWithRetry<T>(path, options);
+  return data;
+}
+
+/** Like apiRequest, but also returns the envelope's `meta` (e.g. pagination info). */
+export async function apiRequestWithMeta<T>(
+  path: string,
+  options: ApiRequestOptions = {},
+): Promise<{ data: T; meta?: Record<string, unknown> }> {
+  return requestWithRetry<T>(path, options);
+}
+
 export const apiClient = {
   get: <T>(path: string, options?: Omit<ApiRequestOptions, "method" | "body">) =>
     apiRequest<T>(path, { ...options, method: "GET" }),
+  getWithMeta: <T>(path: string, options?: Omit<ApiRequestOptions, "method" | "body">) =>
+    apiRequestWithMeta<T>(path, { ...options, method: "GET" }),
   post: <T>(path: string, body?: unknown, options?: Omit<ApiRequestOptions, "method" | "body">) =>
     apiRequest<T>(path, { ...options, method: "POST", body }),
   patch: <T>(path: string, body?: unknown, options?: Omit<ApiRequestOptions, "method" | "body">) =>
