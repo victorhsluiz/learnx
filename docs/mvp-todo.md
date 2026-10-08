@@ -34,15 +34,15 @@ Núcleo do app (registrar palavras aprendidas). Sem isso não há
 - [x] Agrupamento simples por dia/aula (pode ser só um filtro, não
       precisa de agregação sofisticada)
 
-## 3. Cronograma (Fase 4 — pode simplificar bastante)
+## 3. Cronograma (Fase 4 — pode simplificar bastante) ✅ feito
 
 O plano original tinha recorrência (`NONE|DAILY|WEEKLY`) + geração de
-ocorrências + cronômetro de sessões. Para o MVP, **simplificar**:
+ocorrências + cronômetro de sessões. Para o MVP, **simplificado**:
 
-- [ ] Model `StudyTask` **sem recorrência** por agora: título, tipo,
+- [x] Model `StudyTask` **sem recorrência** por agora: título, tipo,
       data, status (pendente/feito), minutos estimados/reais opcionais
-- [ ] API CRUD simples (sem geração de ocorrências)
-- [ ] UI: lista por data (não precisa ser grade semanal completa), marcar
+- [x] API CRUD simples (sem geração de ocorrências)
+- [x] UI: lista por data (não precisa ser grade semanal completa), marcar
       feito/pulado
 
 Recorrência e cronômetro de sessão em tempo real ficam pro roadmap — dá
