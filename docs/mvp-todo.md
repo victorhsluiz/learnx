@@ -48,13 +48,13 @@ ocorrências + cronômetro de sessões. Para o MVP, **simplificado**:
 Recorrência e cronômetro de sessão em tempo real ficam pro roadmap — dá
 pra logar minutos manualmente por ora.
 
-## 4. Dashboard com dados reais
+## 4. Dashboard com dados reais ✅ feito
 
 Hoje é placeholder. Mínimo pro MVP:
 
-- [ ] Contagem de palavras aprendidas (total e últimos 7 dias)
-- [ ] Aulas concluídas vs pendentes
-- [ ] Tarefas do cronograma pendentes hoje/na semana
+- [x] Contagem de palavras aprendidas (total e últimos 7 dias)
+- [x] Aulas concluídas vs pendentes
+- [x] Tarefas do cronograma pendentes hoje/na semana
 
 Não precisa de streak, gráficos ou agregações elaboradas — só números
 simples via query direta.
