@@ -20,6 +20,7 @@ model User {
   refreshTokens RefreshToken[]
   lessons       Lesson[]
   notes         Note[]
+  words         Word[]
 
   @@map("users")
 }
@@ -71,6 +72,7 @@ model Lesson {
 
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   notes Note[]
+  words Word[]
 
   @@index([userId])
   @@index([userId, status])
@@ -97,4 +99,32 @@ model Note {
   @@index([userId])
   @@index([userId, lessonId])
   @@map("notes")
+}
+
+/// A learned Mandarin word, logged at the end of a study session.
+/// Optionally tied to the lesson it was learned during — deleting that
+/// lesson orphans the word (sets lessonId to null) rather than deleting
+/// it, same orphaning behavior as Note.lessonId. Hanzi+pinyin pairs are
+/// unique per user to avoid duplicate log entries for the same word.
+model Word {
+  id           String   @id @default(cuid())
+  userId       String
+  lessonId     String?
+  hanzi        String
+  pinyin       String
+  translation  String
+  notes        String?
+  learnedAt    DateTime @default(now())
+  tags         String[] @default([])
+  partOfSpeech String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, hanzi, pinyin])
+  @@index([userId])
+  @@index([userId, lessonId])
+  @@map("words")
 }
