@@ -19,19 +19,19 @@ shell do frontend, módulo Lessons (API+UI), módulo Notes (API only).
 
 Sem isso, notas só existem via API — inútil pro uso real.
 
-## 2. Vocabulário (Fase 3 completa — API + UI)
+## 2. Vocabulário (Fase 3 completa — API + UI) ✅ feito
 
 Núcleo do app (registrar palavras aprendidas). Sem isso não há
 "gerenciador de estudos" de verdade.
 
-- [ ] Model `Word` no Prisma (hanzi, pinyin, translation, notes?,
+- [x] Model `Word` no Prisma (hanzi, pinyin, translation, notes?,
       learnedAt, lessonId?, tags, partOfSpeech?) + unicidade
       `(userId, hanzi, pinyin)`
-- [ ] CRUD API com filtros (q, tag, lessonId, intervalo de data) — mesmo
+- [x] CRUD API com filtros (q, tag, lessonId, intervalo de data) — mesmo
       padrão de camadas já usado
-- [ ] UI: tabela com busca/filtros, formulário rápido de adição (foco em
+- [x] UI: tabela com busca/filtros, formulário rápido de adição (foco em
       digitar rápido no fim do estudo)
-- [ ] Agrupamento simples por dia/aula (pode ser só um filtro, não
+- [x] Agrupamento simples por dia/aula (pode ser só um filtro, não
       precisa de agregação sofisticada)
 
 ## 3. Cronograma (Fase 4 — pode simplificar bastante)
