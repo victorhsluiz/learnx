@@ -8,14 +8,14 @@ tasks de treinamento.
 Já feito: autenticação completa (registro/login/sessão/refresh/logout),
 shell do frontend, módulo Lessons (API+UI), módulo Notes (API only).
 
-## 1. Notes — UI (falta da Fase 2)
+## 1. Notes — UI (falta da Fase 2) ✅ feito
 
-- [ ] Página `/notes`: lista com busca por texto, recorte do conteúdo,
+- [x] Página `/notes`: lista com busca por texto, recorte do conteúdo,
       filtro por aula
-- [ ] Editor: textarea de Markdown + preview (biblioteca leve, ex.
+- [x] Editor: textarea de Markdown + preview (biblioteca leve, ex.
       `react-markdown`)
-- [ ] Seletor de aula (dropdown com as lessons do usuário, opcional)
-- [ ] Criar/editar/excluir nota
+- [x] Seletor de aula (dropdown com as lessons do usuário, opcional)
+- [x] Criar/editar/excluir nota
 
 Sem isso, notas só existem via API — inútil pro uso real.
 
