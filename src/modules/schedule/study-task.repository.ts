@@ -1,5 +1,6 @@
 import type { PrismaClient, StudyTask } from "@/generated/prisma/client";
 import type { Prisma } from "@/generated/prisma/client";
+import type { StudyTaskStatus } from "@/generated/prisma/enums";
 import { NotFoundError } from "@/core/errors";
 import type {
   FindManyResult,
@@ -81,5 +82,16 @@ export class PrismaStudyTaskRepository implements StudyTaskRepository {
     ]);
 
     return { items, total };
+  }
+
+  countByStatusAndDateRange(
+    userId: string,
+    status: StudyTaskStatus,
+    from: Date,
+    to: Date,
+  ): Promise<number> {
+    return this.prisma.studyTask.count({
+      where: { userId, status, date: { gte: from, lte: to } },
+    });
   }
 }

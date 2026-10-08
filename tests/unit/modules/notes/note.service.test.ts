@@ -142,6 +142,10 @@ class FakeLessonRepository implements LessonRepository {
   async markWatched(): Promise<Lesson> {
     throw new Error("not used in these tests");
   }
+
+  async countByStatus(): Promise<number> {
+    throw new Error("not used in these tests");
+  }
 }
 
 describe("NoteService", () => {

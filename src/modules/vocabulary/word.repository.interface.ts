@@ -32,4 +32,8 @@ export interface WordRepository extends Repository<Word, WordWriteInput, Partial
     filters: WordFilters,
     pagination: { skip: number; take: number },
   ): Promise<FindManyResult<Word>>;
+  /** Total count of words learned by the user. */
+  countTotal(userId: string): Promise<number>;
+  /** Count of words with `learnedAt >= since`. */
+  countSince(userId: string, since: Date): Promise<number>;
 }

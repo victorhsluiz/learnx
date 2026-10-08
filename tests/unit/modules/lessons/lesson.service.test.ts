@@ -87,6 +87,10 @@ class FakeLessonRepository implements LessonRepository {
     lesson.watchedAt = watchedAt;
     return lesson;
   }
+
+  async countByStatus(): Promise<number> {
+    throw new Error("not used in these tests");
+  }
 }
 
 describe("LessonService", () => {

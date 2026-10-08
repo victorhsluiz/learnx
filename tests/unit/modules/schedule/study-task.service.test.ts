@@ -108,6 +108,10 @@ class FakeStudyTaskRepository implements StudyTaskRepository {
     const total = items.length;
     return { items: items.slice(pagination.skip, pagination.skip + pagination.take), total };
   }
+
+  async countByStatusAndDateRange(): Promise<number> {
+    throw new Error("not used in these tests");
+  }
 }
 
 class FakeLessonRepository implements LessonRepository {
@@ -145,6 +149,10 @@ class FakeLessonRepository implements LessonRepository {
   }
 
   async markWatched(): Promise<Lesson> {
+    throw new Error("not used in these tests");
+  }
+
+  async countByStatus(): Promise<number> {
     throw new Error("not used in these tests");
   }
 }

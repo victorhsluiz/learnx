@@ -34,4 +34,11 @@ export interface StudyTaskRepository extends Repository<
     filters: StudyTaskFilters,
     pagination: { skip: number; take: number },
   ): Promise<FindManyResult<StudyTask>>;
+  /** Count of tasks with the given status and `date` within [from, to] (inclusive). */
+  countByStatusAndDateRange(
+    userId: string,
+    status: StudyTaskStatus,
+    from: Date,
+    to: Date,
+  ): Promise<number>;
 }

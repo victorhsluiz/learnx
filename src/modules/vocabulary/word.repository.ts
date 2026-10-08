@@ -102,4 +102,12 @@ export class PrismaWordRepository implements WordRepository {
 
     return { items, total };
   }
+
+  countTotal(userId: string): Promise<number> {
+    return this.prisma.word.count({ where: { userId } });
+  }
+
+  countSince(userId: string, since: Date): Promise<number> {
+    return this.prisma.word.count({ where: { userId, learnedAt: { gte: since } } });
+  }
 }

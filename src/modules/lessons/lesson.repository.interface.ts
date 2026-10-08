@@ -38,4 +38,6 @@ export interface LessonRepository extends Repository<
   ): Promise<FindManyResult<Lesson>>;
   /** Sets status to COMPLETED and records `watchedAt`, scoped to the owning user. */
   markWatched(userId: string, id: string, watchedAt: Date): Promise<Lesson>;
+  /** Count of lessons with the given status. */
+  countByStatus(userId: string, status: LessonStatus): Promise<number>;
 }

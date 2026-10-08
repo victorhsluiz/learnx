@@ -1,4 +1,5 @@
 import type { Lesson, Prisma, PrismaClient } from "@/generated/prisma/client";
+import type { LessonStatus } from "@/generated/prisma/enums";
 import { NotFoundError } from "@/core/errors";
 import type {
   FindManyResult,
@@ -91,5 +92,9 @@ export class PrismaLessonRepository implements LessonRepository {
       throw new NotFoundError("Lesson not found");
     }
     return updated;
+  }
+
+  countByStatus(userId: string, status: LessonStatus): Promise<number> {
+    return this.prisma.lesson.count({ where: { userId, status } });
   }
 }
