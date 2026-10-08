@@ -21,6 +21,7 @@ model User {
   lessons       Lesson[]
   notes         Note[]
   words         Word[]
+  studyTasks    StudyTask[]
 
   @@map("users")
 }
@@ -70,9 +71,10 @@ model Lesson {
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
-  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes Note[]
-  words Word[]
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes      Note[]
+  words      Word[]
+  studyTasks StudyTask[]
 
   @@index([userId])
   @@index([userId, status])
@@ -127,4 +129,36 @@ model Word {
   @@index([userId])
   @@index([userId, lessonId])
   @@map("words")
+}
+
+enum StudyTaskStatus {
+  PENDING
+  DONE
+  SKIPPED
+}
+
+/// A flat study-plan task scoped to a date, with an optional link back to
+/// the lesson it originated from. Deliberately simplified for the MVP: no
+/// recurrence and no occurrence generation — this is a single task row per
+/// row, not a template that expands into instances.
+model StudyTask {
+  id               String          @id @default(cuid())
+  userId           String
+  lessonId         String?
+  title            String
+  type             String
+  date             DateTime
+  status           StudyTaskStatus @default(PENDING)
+  estimatedMinutes Int?
+  actualMinutes    Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson? @relation(fields: [lessonId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([userId, date])
+  @@index([userId, lessonId])
+  @@map("study_tasks")
 }

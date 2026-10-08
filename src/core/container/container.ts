@@ -12,6 +12,9 @@ import { NoteController } from "@/modules/notes/note.controller";
 import { PrismaWordRepository } from "@/modules/vocabulary/word.repository";
 import { WordService } from "@/modules/vocabulary/word.service";
 import { WordController } from "@/modules/vocabulary/word.controller";
+import { PrismaStudyTaskRepository } from "@/modules/schedule/study-task.repository";
+import { StudyTaskService } from "@/modules/schedule/study-task.service";
+import { StudyTaskController } from "@/modules/schedule/study-task.controller";
 
 /**
  * Composition root: the single place where concrete implementations are
@@ -42,10 +45,15 @@ const wordRepository = new PrismaWordRepository(prisma);
 const wordService = new WordService(wordRepository, lessonRepository);
 const wordController = new WordController(wordService);
 
+const studyTaskRepository = new PrismaStudyTaskRepository(prisma);
+const studyTaskService = new StudyTaskService(studyTaskRepository, lessonRepository);
+const studyTaskController = new StudyTaskController(studyTaskService);
+
 export const container = {
   prisma,
   authController,
   lessonController,
   noteController,
   wordController,
+  studyTaskController,
 };
